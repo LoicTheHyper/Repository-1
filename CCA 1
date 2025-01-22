@@ -1,0 +1,129 @@
+import csv
+
+def get_data():
+    file = list(csv.reader(open("passwords.csv")))
+    tmp = []
+    for x in file:
+        tmp.append(x)
+    return tmp
+   
+
+def create_userID(tmp):
+    name_again = True
+    while name_again:
+        userID = input("Enter a new user ID: ")
+        userID = userID.lower()  # Correcting the lower() usage
+        inlist = False
+        for row in tmp:
+            if userID == row[0]:  # Comparing against the first element of each row
+                print(userID, "has already been allocated")
+                inlist = True
+                break  # If found, no need to continue looping
+        if not inlist:
+            name_again = False
+    return userID
+
+
+def create_password():
+    sclist = ("!", "£", "$", "%", "&", "<", "*", "@", "^", "(", ")", ">")
+    nclist = ("1", "2", "3", "4", "5", "6", "7", "8", "9", "0")
+    tryagain = True
+    while tryagain:
+        password = input("Please enter your Password: ")
+        password2 = input("Please confirm your Password: ")  # Adding confirmation step
+        if password != password2:
+            print("Passwords do not match. Try again.")
+            continue
+
+        score = 0
+        uc = lc = sc = nc = False
+        if len(password) >= 8:
+            for x in password:
+                if x.islower():
+                    lc = True
+                if x.isupper():
+                    uc = True
+                if x in sclist:
+                    sc = True
+                if x in nclist:
+                    nc = True
+            if sc:
+                score += 1
+            if nc:
+                score += 1
+            if lc:
+                score += 1
+            if uc:
+                score += 1
+            if score == 1 or score == 2:
+                print("This is a weak password, try again.")
+            elif score == 3 or score == 4:
+                print("This password should be improved upon, but at least it's safer than before")
+                again = input("Would you like to try again? (y/n): ").lower()
+                if again == 'n':
+                    tryagain = False
+        else:
+            print("Password must be at least 8 characters long.")
+    return password
+
+
+def find_userID(tmp):
+    ask_name_again = True
+    while ask_name_again:
+        searchID = input("Enter the user ID you are looking for: ").lower()
+        inlist = False
+        for row in tmp:
+            if searchID == row[0]:  # Looking for an exact match
+                inlist = True
+                break
+        if inlist:
+            return searchID
+        else:
+            print(searchID, "is NOT in the list")
+
+
+def change_password(userID, tmp):
+    if userID != "":
+        password = create_password()
+        for row in tmp:
+            if row[0] == userID:
+                row[1] = password  # Change password in the tmp list
+                break
+        with open("passwords.csv", "w", newline='') as file:
+            writer = csv.writer(file)
+            writer.writerows(tmp)
+
+
+def display_all_userID():
+    tmp = get_data()
+    for row in tmp:
+        print(row[0])
+
+
+def main():
+    tmp = get_data()
+    go_again = True
+    while go_again:
+        print()
+        print("1) Create a new user ID")
+        print("2) Change a new password")
+        print("3) Display all user IDs")
+        print("4) Exit & Quit")
+        print()
+        selection = int(input("Enter Selection: "))
+        if selection == 1:
+            userID = create_userID(tmp)
+            password = create_password()
+            with open("passwords.csv", "a", newline='') as file:
+                writer = csv.writer(file)
+                writer.writerow([userID, password])  # Append the new user to the file
+        elif selection == 2:
+            userID = find_userID(tmp)
+            change_password(userID, tmp)
+        elif selection == 3:
+            display_all_userID()
+        elif selection == 4:
+            go_again = False
+        else:
+            print("Incorrect input, please do NOT break this code, it took me hours to make :c")
+            main()
